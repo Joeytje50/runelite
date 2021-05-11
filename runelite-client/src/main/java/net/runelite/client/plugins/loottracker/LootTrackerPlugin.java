@@ -850,6 +850,12 @@ public class LootTrackerPlugin extends Plugin
 			setEvent(LootRecordType.EVENT, SEEDPACK_EVENT);
 			takeInventorySnapshot();
 		}
+		
+		if (event.getMenuOption().equals("Search") && event.getId() == ItemID.PANNING_TRAY_679)
+		{
+			setEvent(LootRecordType.EVENT, PANNING_TRAY_EVENT);
+			takeInventorySnapshot();
+		}
 
 		if (event.getMenuOption().equals("Open") && SHADE_CHEST_OBJECTS.containsKey(event.getId()))
 		{
