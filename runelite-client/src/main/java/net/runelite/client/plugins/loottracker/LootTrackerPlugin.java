@@ -197,6 +197,14 @@ public class LootTrackerPlugin extends Plugin
 		put(ObjectID.GOLD_CHEST_41215, "Gold key black").
 		put(ObjectID.GOLD_CHEST_41216, "Gold key purple").
 		build();
+	
+	// Digsite activities
+	private static final Pattern DIGSITE_DIG_PATTERN = Pattern.compile("You find (.*)\.");
+	private static final String PANNING_TRAY_MESSAGE = "You search the contents of the tray...";
+	private static final String PANNING_TRAY_EVENT = "Panning tray";
+	private static final Map<Integer, String> SHADE_CHEST_OBJECTS = new ImmutableMap.Builder<Integer, String>().
+		put(2375, "Specimen tray").
+		build();
 
 	// Hallow Sepulchre Coffin handling
 	private static final String COFFIN_LOOTED_MESSAGE = "You push the coffin lid aside.";
@@ -764,6 +772,21 @@ public class LootTrackerPlugin extends Plugin
 			setEvent(LootRecordType.EVENT, type, client.getBoostedSkillLevel(Skill.HUNTER));
 			takeInventorySnapshot();
 		}
+		
+		// Check if the player is in the Digsite
+		final Matcher matcher = DIGSITE_DIG_PATTERN.matcher(message);
+		if (matcher.matches())
+		{
+			final String item = matcher.group(1);
+			if (item.equals("nothing") || item.equals("nothing of interest")) {
+				// Log 'nothing' drop?
+				log.debug("Nothing-drop from Digsite");
+				return;
+			}
+			
+			setEvent(LootRecordType.EVENT, type, client.getBoostedSkillLevel(Skill.MINING));
+			takeInventorySnapshot();
+		}
 
 		if (regionID == TEMPOROSS_REGION && message.startsWith(TEMPOROSS_LOOT_STRING))
 		{
@@ -802,7 +825,8 @@ public class LootTrackerPlugin extends Plugin
 			|| BIRDNEST_EVENT.equals(eventType)
 			|| SPOILS_OF_WAR_EVENT.equals(eventType)
 			|| TEMPOROSS_EVENT.equals(eventType)
-			|| TEMPOROSS_CASKET_EVENT.equals(eventType))
+			|| TEMPOROSS_CASKET_EVENT.equals(eventType)
+			|| PANNING_TRAY_EVENT.equals(eventType))
 		{
 			processInventoryLoot(eventType, lootRecordType, metadata, event.getItemContainer(), Collections.emptyList());
 			resetEvent();
