@@ -199,11 +199,12 @@ public class LootTrackerPlugin extends Plugin
 		build();
 	
 	// Digsite activities
-	private static final Pattern DIGSITE_DIG_PATTERN = Pattern.compile("You find (.*)\.");
+	private static final Pattern DIGSITE_DIG_PATTERN = Pattern.compile("^You find ([a-z ]*)\.$");
 	private static final String PANNING_TRAY_MESSAGE = "You search the contents of the tray...";
 	private static final String PANNING_TRAY_EVENT = "Panning tray";
 	private static final Map<Integer, String> DIGSITE_OBJECTS = new ImmutableMap.Builder<Integer, String>().
-		put(2375, "Specimen tray").
+		put(13364, "Specimen tray").
+		put(13365, "Soil").
 		build();
 
 	// Hallow Sepulchre Coffin handling
@@ -784,7 +785,7 @@ public class LootTrackerPlugin extends Plugin
 				return;
 			}
 			
-			setEvent(LootRecordType.EVENT, type, client.getBoostedSkillLevel(Skill.MINING));
+			setEvent(LootRecordType.EVENT, DIGSITE_OBJECTS.get(regionID), client.getBoostedSkillLevel(Skill.MINING));
 			takeInventorySnapshot();
 		}
 
