@@ -202,9 +202,15 @@ public class LootTrackerPlugin extends Plugin
 	private static final Pattern DIGSITE_DIG_PATTERN = Pattern.compile("^You find ([a-z ]*)\.$");
 	private static final String PANNING_TRAY_MESSAGE = "You search the contents of the tray...";
 	private static final String PANNING_TRAY_EVENT = "Panning tray";
+	private static final String SPECIMEN_TRAY_EVENT = "Specimen tray";
+	private static final Map<Integer, String> DIGSITE_SOILS = new ImmutableMap.Builder<Integer, String>().
+		put(ObjectID.SOIL, "Digsite excavation").
+		put(ObjectID.SOIL_2377, "Digsite excavation").
+		put(ObjectID.SOIL_2378, "Digsite excavation").
+		build();
 	private static final Map<Integer, String> DIGSITE_OBJECTS = new ImmutableMap.Builder<Integer, String>().
 		put(13364, "Specimen tray").
-		put(13365, "Soil").
+		put(13365, "Digsite excavation").
 		build();
 
 	// Hallow Sepulchre Coffin handling
@@ -775,13 +781,14 @@ public class LootTrackerPlugin extends Plugin
 		}
 		
 		// Check if the player is in the Digsite
-		final Matcher matcher = DIGSITE_DIG_PATTERN.matcher(message);
-		if (matcher.matches())
+		final Matcher digsiteMatcher = DIGSITE_DIG_PATTERN.matcher(message);
+		if (digsiteMatcher.matches())
 		{
-			final String item = matcher.group(1);
+			final String item = digsiteMatcher.group(1);
 			if (item.equals("nothing") || item.equals("nothing of interest")) {
 				// Log 'nothing' drop?
 				log.debug("Nothing-drop from Digsite");
+				resetEvent();
 				return;
 			}
 			
@@ -854,6 +861,12 @@ public class LootTrackerPlugin extends Plugin
 		if (event.getMenuOption().equals("Search") && event.getId() == ItemID.PANNING_TRAY_679)
 		{
 			setEvent(LootRecordType.EVENT, PANNING_TRAY_EVENT);
+			takeInventorySnapshot();
+		}
+		
+		if (event.getMenuOption().equals("Search") && event.getId() == ObjectID.SPECIMEN_TRAY)
+		{
+			setEvent(LootRecordType.EVENT, SPECIMEN_TRAY_EVENT);
 			takeInventorySnapshot();
 		}
 
