@@ -202,7 +202,7 @@ public class LootTrackerPlugin extends Plugin
 	private static final Pattern DIGSITE_DIG_PATTERN = Pattern.compile("You find (.*)\.");
 	private static final String PANNING_TRAY_MESSAGE = "You search the contents of the tray...";
 	private static final String PANNING_TRAY_EVENT = "Panning tray";
-	private static final Map<Integer, String> SHADE_CHEST_OBJECTS = new ImmutableMap.Builder<Integer, String>().
+	private static final Map<Integer, String> DIGSITE_OBJECTS = new ImmutableMap.Builder<Integer, String>().
 		put(2375, "Specimen tray").
 		build();
 
@@ -806,6 +806,7 @@ public class LootTrackerPlugin extends Plugin
 
 		if (CHEST_EVENT_TYPES.containsValue(eventType)
 			|| SHADE_CHEST_OBJECTS.containsValue(eventType)
+			|| DIGSITE_OBJECTS.containsValue(eventType)
 			|| HALLOWED_SEPULCHRE_COFFIN_EVENT.equals(eventType)
 			|| HERBIBOAR_EVENT.equals(eventType)
 			|| HESPORI_EVENT.equals(eventType)
