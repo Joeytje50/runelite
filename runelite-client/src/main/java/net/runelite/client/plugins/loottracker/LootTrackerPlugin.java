@@ -162,6 +162,41 @@ public class LootTrackerPlugin extends Plugin
 	private static final String COURIER_TASK_REWARD_EVENT = "Courier tasks";
 	private static final String COURIER_TASK_COMPLETE_MESSAGE = "and complete your courier task!";
 
+	// Deep Sea Trawling
+	private static final Pattern DEEP_SEA_TRAWLING_PATTERN = Pattern.compile(
+		"You've received some paint!|"+
+		"[A-Za-z -]+?"+
+		//"(?:You|(?:Jobless|Jittery|Jolly) Jim|Ex-Captain Siad|Adventurer Ada|Cabin Boy Jenkins|Oarswoman Olga|Bosun Zarah|Spotter Virginia|Sailor Jakob)"+
+		" catch(?:es)? (<amount>[a-z]+) "+
+		"(<fish>giant krill|haddock|yellowfin|halibut|bluefin|marlin"+
+		"|giant blue krill|golden haddock|orangefin|huge halibut|purplefin|swift marlin)!");
+	private static final Map<String, Integer> DEEP_SEA_TRAWLING_REWARDS = Map.of(
+		"giant krill", ItemID.RAW_GIANT_KRILL,
+		"haddock", ItemID.RAW_HADDOCK,
+		"yellowfin", ItemID.RAW_YELLOWFIN,
+		"halibut", ItemID.RAW_HALIBUT,
+		"bluefin", ItemID.RAW_BLUEFIN,
+		"marlin", ItemID.RAW_MARLIN,
+		"giant blue krill", ItemID.POH_TROPHYDROP_GIANT_KRILL,
+		"golden haddock", ItemID.POH_TROPHYDROP_HADDOCK,
+		"orangefin", ItemID.POH_TROPHYDROP_YELLOWFIN,
+		"huge halibut", ItemID.POH_TROPHYDROP_HALIBUT,
+		"purplefin", ItemID.POH_TROPHYDROP_BLUEFIN,
+		"swift marlin", ItemID.POH_TROPHYDROP_MARLIN,
+		"paint", ItemID.SAILING_PAINT_ANGLERS
+	);
+	private static final Map<String, Integer> DEEP_SEA_TRAWLING_AMOUNTS = Map.of(
+		"a", 1,
+		"two", 2,
+		"three", 3,
+		"four", 4,
+		"five", 5,
+		"six", 6,
+		"seven", 7,
+		"eight", 8,
+		"nine", 9
+	)
+
 	// Herbiboar loot handling
 	@VisibleForTesting
 	static final String HERBIBOAR_LOOTED_MESSAGE = "You harvest herbs from the herbiboar, whereupon it escapes.";
@@ -1097,6 +1132,16 @@ public class LootTrackerPlugin extends Plugin
 			});
 		}
 
+		final Matcher deepSeaTrawlingMatcher = DEEP_SEA_TRAWLING_PATTERN.matcher(message);
+		if (deepSeaTrawlingMatcher.matches())
+		{
+			if (processDeepSeaTrawlingLoot(deepSeaTrawlingMatcher))
+			{
+				// if no a paint message triggered this, because another type of paint may be the trigger
+				return;
+			}
+		}
+
 		if (message.equals(HERBIBOAR_LOOTED_MESSAGE))
 		{
 			if (processHerbiboarHerbSackLoot(event.getTimestamp()))
@@ -1643,6 +1688,39 @@ public class LootTrackerPlugin extends Plugin
 				.forEach(item -> inventorySnapshot.add(item.getId(), item.getQuantity()));
 		}
 	}
+
+	private boolean processDeepSeaTrawlingLoot(Matcher matcher) {
+		final string itemName = deepSeaTrawlingMatcher.group("fish");
+		final Integer itemId;
+		final Integer amount;
+
+		if (itemName == null)
+		{
+			// Paint message appeared in chat, check if it is Angler's paint, otherwise ignore it
+			onInvChange((invItems, groundItems, removedItems) ->
+			{
+				int cnt = invItems.stream().
+					filter(item -> item.getId() == ItemID.SAILING_PAINT_ANGLERS).
+					mapToInt(ItemStack::getQuantity).
+					sum();
+				if (cnt > 0)
+				{
+					itemId = ItemID.SAILING_PAINT_ANGLERS;
+					amount = cnt;
+				}
+			});
+		}
+		else
+		{
+			itemId = DEEP_SEA_TRAWLING_REWARDS.get(itemName);
+			amount = DEEP_SEA_TRAWLING_AMOUNTS.getOrDefault(deepSeaTrawlingMatcher.group("amount"), 1);
+		}
+
+		//TODO: Detect closest object with "Shoal" in its name and set the name to that shoal type, rather than just "Deep Sea Trawling".
+		addLoot("Deep Sea Trawling", -1, LootRecordType.EVENT, null, List.of(new ItemStack(itemId, amount)))
+		// return false if paint message occurs, because that may not have been angler's paint, so further processing may be needed
+		return itemname != null;
+	};
 
 	private boolean processHerbiboarHerbSackLoot(int timestamp)
 	{
